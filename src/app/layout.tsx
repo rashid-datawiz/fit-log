@@ -4,7 +4,6 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { WorkoutProvider } from "@/context/WorkoutContext";
-import Hero from "@/components/Hero";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

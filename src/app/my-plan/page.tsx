@@ -9,6 +9,7 @@ import {
     Flame,
     Star,
     X,
+    ChevronDown,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -29,13 +30,26 @@ const MyPlan = () => {
 
     const [toast, setToast] = useState<string | null>(null);
 
+    type SortOption = "duration" | "calories" | "rating";
+
+    const [sortBy, setSortBy] = useState<SortOption>("duration");
+
     const activeTab =
         searchParams.get("tab") === "saved" ? "saved" : "plan";
 
-    const workouts = activeTab === "saved" ? saved : plan;
-
-    // Live metrics for today's plan
     const activeWorkouts = activeTab === "saved" ? saved : plan;
+
+    const sortedWorkouts = [...activeWorkouts].sort((a, b) => {
+        if (sortBy === "duration") {
+            return b.duration - a.duration;
+        }
+
+        if (sortBy === "calories") {
+            return b.caloriesBurned - a.caloriesBurned;
+        }
+
+        return b.rating - a.rating;
+    });
 
     const totalMinutes = activeWorkouts.reduce(
         (total, workout) => total + workout.duration,
@@ -96,7 +110,6 @@ const MyPlan = () => {
                 </div>
 
                 {/* Metrics */}
-                {/* Metrics */}
                 <div className="mb-10 grid grid-cols-3 border-y border-white/10">
                     <div className="border-r border-white/10 px-4 py-5 sm:px-6">
                         <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/35">
@@ -130,36 +143,69 @@ const MyPlan = () => {
                 </div>
 
                 {/* Tabs */}
-                <div className="mb-8 flex items-center gap-6 border-b border-white/10">
-                    <Link
-                        href="/my-plan"
-                        className={`relative pb-4 text-xs font-black uppercase tracking-[0.1em] transition ${activeTab === "plan"
-                                ? "text-white"
-                                : "text-white/35 hover:text-white"
-                            }`}
-                    >
-                        Today's Plan
-                        {activeTab === "plan" && (
-                            <span className="absolute bottom-0 left-0 h-[2px] w-full bg-[#CCFF00]" />
-                        )}
-                    </Link>
+                {/* Tabs + Sort */}
+                <div className="mb-8 flex flex-col gap-5 border-b border-white/10 pb-0 sm:flex-row sm:items-end sm:justify-between">
+                    {/* Tabs */}
+                    <div className="flex items-center gap-6">
+                        <Link
+                            href="/my-plan"
+                            className={`relative pb-4 text-xs font-black uppercase tracking-[0.1em] transition ${activeTab === "plan"
+                                    ? "text-white"
+                                    : "text-white/35 hover:text-white"
+                                }`}
+                        >
+                            Today's Plan
 
-                    <Link
-                        href="/my-plan?tab=saved"
-                        className={`relative pb-4 text-xs font-black uppercase tracking-[0.1em] transition ${activeTab === "saved"
-                                ? "text-white"
-                                : "text-white/35 hover:text-white"
-                            }`}
-                    >
-                        Saved
-                        {activeTab === "saved" && (
-                            <span className="absolute bottom-0 left-0 h-[2px] w-full bg-[#CCFF00]" />
-                        )}
-                    </Link>
+                            {activeTab === "plan" && (
+                                <span className="absolute bottom-0 left-0 h-[2px] w-full bg-[#CCFF00]" />
+                            )}
+                        </Link>
+
+                        <Link
+                            href="/my-plan?tab=saved"
+                            className={`relative pb-4 text-xs font-black uppercase tracking-[0.1em] transition ${activeTab === "saved"
+                                    ? "text-white"
+                                    : "text-white/35 hover:text-white"
+                                }`}
+                        >
+                            Saved
+
+                            {activeTab === "saved" && (
+                                <span className="absolute bottom-0 left-0 h-[2px] w-full bg-[#CCFF00]" />
+                            )}
+                        </Link>
+                    </div>
+
+                    {/* Sort */}
+                    <div className="mb-4 flex items-center gap-3 sm:mb-3">
+                        <span className="text-sm text-white/50">
+                            Sort By
+                        </span>
+
+                        <div className="relative">
+                            <select
+                                value={sortBy}
+                                onChange={(event) =>
+                                    setSortBy(event.target.value as SortOption)
+                                }
+                                className="select select-bordered h-14 min-h-14 w-40 appearance-none rounded-2xl border-white/10 bg-[#101116] px-4 pr-11 text-base text-white outline-none focus:border-white/20 focus:outline-none"
+                                aria-label="Sort workouts"
+                            >
+                                <option value="duration">Duration</option>
+                                <option value="calories">Calories</option>
+                                <option value="rating">Rating</option>
+                            </select>
+
+                            <ChevronDown
+                                size={20}
+                                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white/50"
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 {/* Empty State */}
-                {workouts.length === 0 ? (
+                {activeWorkouts.length === 0 ? (
                     <div className="flex min-h-[380px] items-center justify-center border border-white/10 bg-[#0B0B0B] px-6 text-center">
                         <div className="max-w-md">
                             <p className="text-xs font-black uppercase tracking-[0.2em] text-[#CCFF00]">
@@ -186,15 +232,15 @@ const MyPlan = () => {
                 ) : (
                     /* Workout Cards */
                     <div className="grid gap-4 md:grid-cols-2">
-                        {workouts.map((workout) => {
+                        {sortedWorkouts.map((workout) => {
                             const completed = isCompleted(workout.id);
 
                             return (
                                 <article
                                     key={workout.id}
                                     className={`card overflow-hidden rounded-none border bg-[#0B0B0B] shadow-none transition ${completed
-                                            ? "border-[#CCFF00]/30"
-                                            : "border-white/10"
+                                        ? "border-[#CCFF00]/30"
+                                        : "border-white/10"
                                         }`}
                                 >
                                     <div className="flex flex-col sm:flex-row">
@@ -235,8 +281,8 @@ const MyPlan = () => {
 
                                                     <h2
                                                         className={`text-xl font-black uppercase leading-tight tracking-[-0.025em] ${completed
-                                                                ? "text-white/40 line-through"
-                                                                : "text-white"
+                                                            ? "text-white/40 line-through"
+                                                            : "text-white"
                                                             }`}
                                                     >
                                                         {workout.name}
@@ -298,8 +344,8 @@ const MyPlan = () => {
                                                         onClick={() => handleMarkAsDone(workout.id)}
                                                         disabled={completed}
                                                         className={`btn h-10 min-h-10 flex-1 rounded-none border-0 text-[10px] font-black uppercase tracking-[0.08em] shadow-none ${completed
-                                                                ? "bg-white/10 text-white/30"
-                                                                : "bg-[#CCFF00] text-black hover:bg-[#d9ff4d]"
+                                                            ? "bg-white/10 text-white/30"
+                                                            : "bg-[#CCFF00] text-black hover:bg-[#d9ff4d]"
                                                             }`}
                                                     >
                                                         <Check size={14} />
