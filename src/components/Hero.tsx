@@ -30,7 +30,7 @@ const Hero = () => {
           </p>
 
           <Link
-            href="#library"
+            href="/#"
             className="btn mt-8 h-12 min-h-12 rounded-none border-0 bg-[#CCFF00] px-6 text-xs font-black uppercase tracking-[0.08em] text-black shadow-none hover:bg-[#d9ff4d]"
           >
             Browse Workouts
